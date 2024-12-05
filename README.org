@@ -1,0 +1,7 @@
+* zenfinger
+
+A server for the finger protocol.
+
+The name comes from the myth of Shaolin Kungfu. It was said that there's a kind of Kungfu called the "One Finger Zen" where you train your index fingers to the point of being able to do push-ups on them, and after that your fingers would be very powerful. Of course a myth is just a myth and I doubt index fingers could even get half as powerful as people have been claiming. Anyway, this repository has nothing to do with Kungfu.
+
+
