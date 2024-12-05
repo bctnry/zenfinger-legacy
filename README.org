@@ -1,3 +1,5 @@
+#+options: toc:nil
+
 * zenfinger
 
 A server for the finger protocol.
