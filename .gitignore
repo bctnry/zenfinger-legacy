@@ -1,0 +1,8 @@
+.zenfinger-config
+.zenfinger-index
+.zenfinger-log
+*~
+zenfinger-credential/
+zenfinger-http-static/
+zenfinger-root/
+zenfinger

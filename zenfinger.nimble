@@ -11,3 +11,5 @@ bin           = @["zenfinger"]
 # Dependencies
 
 requires "nim >= 2.0.8"
+requires "checksums"
+

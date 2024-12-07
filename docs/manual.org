@@ -1,0 +1,48 @@
+* Manual-like thingy for Zenfinger
+
+(very early draft; subject to change)
+
+** Server requests
+
+A few requests are reserved and cannot be used as user name:
+
++ =_random=: Randomly picks a user and respond as if the client requested for their profile.
+
+** User directory
+
+When a new user is created, the following directory structure is created in the base directory specified in the config file:
+
+#+begin_example
++ [base dir]
+  + [username]
+    + main
+    + contact
+    + project
+    + plan
+#+end_example
+
+The usage of these four files is as follows:
+
++ =main=: The "main" file. Used for self-introduction and similar things.
++ =contact=: Your contact info, if you choose to share them.
++ =project=: The projects you're working on or have finished
++ =plan=: Your plan, if you choose to share them.
+
+The user can choose to host their PGP public key; the key file would be named =pgp_pubkey= and the signature would reside in a separate file named =pgp_pubkey.sig=. These two files reside in the same directory as the above.
+
+Files under a user's directory can be accessed using the requests "[username]/[filename]" or "[username]?[filename]", e.g. to get the =contact= file of user =sztl= on the server =finger.pub=, the URL would be =finger://finger.pub/sztl/contact= or =finger://finger.pub/sztl?contact=.
+
+If a request only contains the user name (e.g. for the user =sztl= instead of =sztl/main= or =sztl/plan= it's just =sztl=), a combination of the content from the files are returned in this manner:
+
++ The content of =[username]/main=;
++ An empty line;
++ The content of =[username]/contact=;
++ An empty line;
++ If =[username]/pgp_pubkey= exists, then the string: =PGP public key: [username]/pgp_pubkey=;
++ If =[username]/pgp_pubkey.sig= exists, then the string =Fingerprint:=, a space, and the content of the =pgp_pubkey.sig= file.
++ If =[username]/project= exists and is not empty, then the content of it;
++ If =[username]/plan= exists and is not empty, then the content of it;
+
+Of course, some people would want to customize that themselves. Zenfinger also allows that too. If a =profile= file exists under a user's directory, then the content of that file would be returned when the client query the username instead of the mess above.
+
+
