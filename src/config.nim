@@ -49,6 +49,10 @@ proc getConfig*(config: ZConfig, group: string, key: string): string  =
 proc setConfig*(config: ZConfig, group: string, key: string, value: string): void =
   config.config.setSectionKey(group, key, value)
 
+const CONFIG_GROUP_FINGER* = "finger"
+const CONFIG_KEY_FINGER_ADDR* = "address"
+const CONFIG_KEY_FINGER_PORT* = "port"
+  
 const CONFIG_GROUP_DATA* = "content"
 const CONFIG_KEY_DATA_HOMEPAGE_PATH* = "homepage_path"
 const CONFIG_KEY_DATA_BASE_DIR* = "base_dir"
@@ -58,8 +62,8 @@ const CONFIG_GROUP_HTTP* = "http"
 const CONFIG_KEY_HTTP_ADDR* = "address"
 const CONFIG_KEY_HTTP_PORT* = "port"
 const CONFIG_KEY_HTTP_STATIC_ASSETS_DIR* = "static_assets_dir"
+const CONFIG_KEY_HTTP_SITE_NAME* = "site_name"
 
 const CONFIG_GROUP_ADMIN* = "admin"
 const CONFIG_KEY_ADMIN_PASSWORD* = "password"
-
   

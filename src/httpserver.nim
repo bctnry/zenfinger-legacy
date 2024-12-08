@@ -24,12 +24,10 @@ proc proxyTemplate(req: string, x: string): string =
 proc serveHTTP*(config: ZConfig) {.async.} =
   var server = newAsyncHttpServer()
   proc cb(req: Request) {.async.} =
-    echo (req.reqMethod, req.url, req.headers)
+    asyncCheck log("HTTP Request: " & $req.reqMethod & " " & req.url.path & req.url.query)
     var response = ""
-    if req.url.path.startsWith("/finger"):
-      let rawr = if req.url.path == "/finger": "/finger/" else: req.url.path
-      let fingerReq = req.url.path.substr("/finger/".len)
-      echo "fingereq ", fingerReq
+    if req.url.path.startsWith("/~"):
+      let fingerReq = req.url.path.substr("/~".len)
       let r = await processRequest(fingerReq, config)
       response = "<!DOCTYPE html>\n" & proxyTemplate(fingerReq, r)
     elif req.url.path == "/reg":
@@ -48,7 +46,7 @@ proc serveHTTP*(config: ZConfig) {.async.} =
 
   let portNumber = config.getConfig(CONFIG_GROUP_HTTP, CONFIG_KEY_HTTP_PORT).parseInt
   let bindAddr = config.getConfig(CONFIG_GROUP_HTTP, CONFIG_KEY_HTTP_ADDR)
-  server.listen(Port(portNumber), address=bindAddr)
+  server.listen(portNumber.Port, address=bindAddr)
   asyncCheck log("HTTP proxy server bind at " & bindAddr & ":" & $portNumber)
   while true:
     if server.shouldAcceptRequest():

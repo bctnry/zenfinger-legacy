@@ -23,6 +23,18 @@ proc install*(): void =
     echo "Somehow failed to create a config file. Exiting..."
     return
   var c = getCurrentConfig()
+
+  let fingerPort = askWithDefault(
+    "Finger protocol runs on port 79, but some operating systems does not allow a normal user to open up port 1 ~ 1024 without administrator priviledge; yet it's also kind of a security concern to run this software with priviledged user. So - are you planning to run this server with a normal user and have port forwarding set up elsewhere (e.g. you're running this with Docker or Unikraft or other kind of encapsulation)? If yes, then pick the port number this server is going to bind to.",
+    "79"
+  )
+  c.setConfig(CONFIG_GROUP_FINGER, CONFIG_KEY_FINGER_PORT, fingerPort)
+
+  let fingerAddr = askWithDefault(
+    "This option sets the address the Finger server is going to bind to. If you're planning to do port forwarding, you might want to set this option to 127.0.0.1 so that the port chosen above won't get exposed.",
+    "0.0.0.0"
+  )
+  c.setConfig(CONFIG_GROUP_FINGER, CONFIG_KEY_FINGER_ADDR, fingerAddr)
   
   let homepagePath = askWithDefault(
     "Please tell me where you'd like to put the \"home page\" file of this server. The content of this file would be shown if the query is empty.",
@@ -66,6 +78,12 @@ proc install*(): void =
   )
   if not staticAssetsDir.Path.dirExists(): staticAssetsDir.Path.createDir
   c.setConfig(CONFIG_GROUP_HTTP, CONFIG_KEY_HTTP_STATIC_ASSETS_DIR, staticAssetsDir)
+
+  let proxyPrefix = askWithDefault(
+    "This option is to determine the site name used for the HTTP proxy.",
+    "A Zenfinger server"
+  )
+  c.setConfig(CONFIG_GROUP_HTTP, CONFIG_KEY_HTTP_SITE_NAME, proxyPrefix)
 
   echo "Now - one last option. Please enter the password for the admin user of the HTTP server."
   var adminPassword = ""
