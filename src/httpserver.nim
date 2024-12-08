@@ -2,6 +2,7 @@ import std/[asyncnet, asyncdispatch, asynchttpserver]
 import config
 import log
 import contentresolve
+import httpadmin
 from std/strutils import parseInt, startsWith
 from htmlgen as html import nil
 
@@ -10,10 +11,29 @@ proc proxyTemplate(req: string, x: string): string =
     html.html(
       html.head(
         html.meta(charset="utf-8"),
-        html.title(req)
+        html.title(req),
+        html.style("pre { font-size: 1rem }")
       ),
       html.body(
         html.h1(req),
+        html.pre(x),
+        html.hr(),
+        html.p("Powered by Zenfinger")
+      )
+    )
+  )
+
+proc renderIndexPage(x: string, config: ZConfig): string =
+  let siteName = config.getConfig(CONFIG_GROUP_HTTP, CONFIG_KEY_HTTP_SITE_NAME)
+  return (
+    html.html(
+      html.head(
+        html.meta(charset="utf-8"),
+        html.title(siteName),
+        html.style("pre { font-size: 1rem }")
+      ),
+      html.body(
+        html.h1(siteName),
         html.pre(x),
         html.hr(),
         html.p("Powered by Zenfinger")
@@ -35,11 +55,14 @@ proc serveHTTP*(config: ZConfig) {.async.} =
     elif req.url.path.startsWith("/edit"):
       response = "Shh... user edit page not done yet!"
     elif req.url.path.startsWith("/admin"):
-      response = "Shh... admin page not done yet!"
+      await handleAdmin(req, config)
+      return
     elif req.url.path != "/":
       await req.respond(Http308, "", {"Location": "/", "Content-Length": "0"}.newHttpHeaders())
+      return
     else:
-      response = "Shh... front page not done yet!"
+      let r = await processRequest("", config)
+      response = "<!DOCTYPE html>\n" & renderIndexPage(r, config)
       
     let headers = {"Content-type": "text/html; charset=utf-8"}
     await req.respond(Http200, response, headers.newHttpHeaders())

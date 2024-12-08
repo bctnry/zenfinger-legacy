@@ -6,7 +6,7 @@ import std/dirs
 import std/random
 import log
 import config
-from std/strutils import join
+from std/strutils import join, split
 
 proc listDir(config: ZConfig): seq[string] =
   var res: seq[string] = @[]
@@ -94,7 +94,12 @@ proc resolveUser(x: string, config: ZConfig): Future[string] {.async.} =
     return "Cannot find the requested data."
 
 # NOTE: x would be whatever the client would send without the ending crlf.
-proc processRequest*(x: string, config: ZConfig): Future[string] {.async.}  =
+proc processRequest*(xx: string, config: ZConfig): Future[string] {.async.}  =
+  # NOTE: this treats question mark `?` as the same as the slash `/`.
+  # in my opinion this isn't exactly ideal, but i currently couldn't think
+  # of a situation where maintaining a distinction would be beneficial in
+  # the context of Zenfinger.
+  let x = xx.split('\t').join("/")
   if x == "_random":
     let allUserList = listDir(config)
     let choice = rand(allUserList.len-1)

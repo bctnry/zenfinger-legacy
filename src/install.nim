@@ -41,7 +41,7 @@ proc install*(): void =
     (getExecutableDir() / (".zenfinger-index".Path)).string
   )
   discard f.open(homepagePath, fmWrite)
-  f.write("Welcome to our Finger server.")
+  f.write("Welcome to our Finger server.\n\nYou can visit `[server]/_random` using a Finger protocol client or `[server]/~_random` using a web browser")
   f.close()
   c.setConfig(CONFIG_GROUP_DATA, CONFIG_KEY_DATA_HOMEPAGE_PATH, homepagePath)
   

@@ -2,11 +2,22 @@
 
 * zenfinger
 
-A server for [[https://en.wikipedia.org/wiki/Finger_(protocol)][the finger protocol]].
+This program is a "new-style" server & client for [[https://en.wikipedia.org/wiki/Finger_(protocol)][the Finger protocol]], and by "new-style" I mean to complete disregard the old convention and behaviour of =finger= and =fingerd= and only use it as a simple data transfer protocol.
+
+** Protocol compliance
+
++ {C} query returns the content of a designated file instead of the list of all users. I've considered adding a special handler for the request of =_alluser= mainly for user discovery, but we have =_random= already so I didn't add it in.
++ The RFC said {U}{C} query must include the full name of the user, but the server technically can't do anything if the user did not provide a full name in the first place. Zenfinger allow the customization of a =main= file, which is intended as a place for users to put their self-introductions.
++ Zenfinger doesn't bother with querying people's full name and treats every query a query of "login name" (but a Zenfinger user is not the same as a shell user either)
++ The server part of Zenfinger won't bother with {Q2} queries, but the client would send a {Q2} query if asked.
+
+For other details of what gets displayed and what doesn't get displayed, please read [[./docs/manual.org][the manual]].
+
+** The name
 
 The name comes from the myth of Shaolin Kungfu. It was said that there's a kind of Kungfu called the "One Finger Zen" where you train your index fingers to the point of being able to do push-ups on them, and after that your fingers would be very powerful. Of course a myth is just a myth and I doubt index fingers could even get half as powerful as people have been claiming. Anyway, this repository has nothing to do with Kungfu.
 
 ** Usage
 
-You can use ports other than 79, but the clients (e.g. Lynx) may not accept it. On some systems they forbid anyone who isn't root to open a port with port number lower than 1024; you might need to use =sudo= or =doas=.
+You can use ports other than 79, but some clients (e.g. Lynx) may not accept it, so you need to . On some systems they forbid anyone who isn't root to open a port with port number lower than 1024; you might need to use =sudo= or =doas=.
 

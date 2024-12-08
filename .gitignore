@@ -6,3 +6,5 @@ zenfinger-credential/
 zenfinger-http-static/
 zenfinger-root/
 zenfinger
+#.*#
+.#*
