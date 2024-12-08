@@ -8,8 +8,8 @@ This program is a "new-style" server & client for [[https://en.wikipedia.org/wik
 
 + {C} query returns the content of a designated file instead of the list of all users. I've considered adding a special handler for the request of =_alluser= mainly for user discovery, but we have =_random= already so I didn't add it in.
 + The RFC said {U}{C} query must include the full name of the user, but the server technically can't do anything if the user did not provide a full name in the first place. Zenfinger allow the customization of a =main= file, which is intended as a place for users to put their self-introductions.
-+ Zenfinger doesn't bother with querying people's full name and treats every query a query of "login name" (but a Zenfinger user is not the same as a shell user either)
-+ The server part of Zenfinger won't bother with {Q2} queries, but the client would send a {Q2} query if asked.
++ Zenfinger doesn't bother with querying people's full name and treats every query a query of "login name" (also a Zenfinger user only means a user registered with the Zenfinger server and is not the same as a shell user).
++ The server part of Zenfinger won't bother with {Q2} queries, but the client would send a {Q2} query if asked (which, in compliance to [[https://datatracker.ietf.org/doc/html/rfc1288#section-2.4][RFC 1288]], for any {Q2} query that's formed like =u@H1@H2@...@Hn-1@Hn=, Zenfinger would send the query =u@H1@H2@...@Hn-1= to the server =Hn=.)
 
 For other details of what gets displayed and what doesn't get displayed, please read [[./docs/manual.org][the manual]].
 
