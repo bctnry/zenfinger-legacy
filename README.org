@@ -19,5 +19,12 @@ The name comes from the myth of Shaolin Kungfu. It was said that there's a kind 
 
 ** Usage
 
-You can use ports other than 79, but some clients (e.g. Lynx) may not accept it, so you need to . On some systems they forbid anyone who isn't root to open a port with port number lower than 1024; you might need to use =sudo= or =doas=.
+*** As a Finger client
+
+Run =zenfinger [query]=. For example, =zenfinger random@happynetbox.com= or =zenfinger @sdf.org=.
+
+*** As a Finger server
+
+Run =zenfinger -s [config-file-path]=, which will start a server using the file at =[config-file-path]= as the config file. =[config-file-path]= can be empty; in this case, Zenfinger would try to find the config file in the directory the executable resides; and if Zenfinger cannot find a config file, it would ask you for creating one. The details of configuring is explained in the creation process (and in the [[./docs/manual.org][manual]]). 
+
 

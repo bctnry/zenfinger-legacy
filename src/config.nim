@@ -12,6 +12,8 @@
 import std/paths
 import std/files
 import std/parsecfg
+import std/strtabs
+import std/asyncfile
 import checksums/bcrypt
 from std/asyncdispatch import asyncCheck
 from std/strutils import strip
@@ -24,18 +26,29 @@ type
   ZConfig* = ref object
     sourcePath*: string
     config*: Config
+    # we put the register queue here because we are already passing ZConfig
+    # around and I don't want to read and parse a file whenever someone
+    # registers.
+    registerQueuePath*: string
+    registerQueue*: Config
 
 var config: ZConfig = nil
 proc getCurrentConfig*(): ZConfig = config
 
 proc initConfig*(findPath: string = ""): bool =
+  let registerQueuePath = (getExecutableDir() / ".zenfinger-applications".Path)
+  if not registerQueuePath.fileExists():
+    let f = openAsync(registerQueuePath.string, fmWrite)
+    f.close()
+  let q = registerQueuePath.string.loadConfig()
+
   var fp = findPath.strip()
   if fp != "" and fp.Path.fileExists():
-    config = ZConfig(sourcePath: fp, config: fp.loadConfig())
+    config = ZConfig(sourcePath: fp, config: fp.loadConfig(), registerQueue: q, registerQueuePath: registerQueuePath.string)
     return true
   fp = (getExecutableDir() / (configFileName.Path)).string
   if fp != "" and fp.Path.fileExists():
-    config = ZConfig(sourcePath: fp, config: fp.loadConfig())
+    config = ZConfig(sourcePath: fp, config: fp.loadConfig(), registerQueue: q, registerQueuePath: registerQueuePath.string)
     return true
   asyncCheck log("Failed to load config file from " & findPath.repr)
   return false

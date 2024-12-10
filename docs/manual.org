@@ -2,6 +2,65 @@
 
 (very early draft; subject to change)
 
+** Configuration
+
+Zenfinger uses the kind of INI file that can be correctly parsed by [[https://nim-lang.org/docs/parsecfg.html][Nim's built-in parser]].
+
+A sample config file:
+
+#+begin_src ini
+  ; All paths are absolute paths unless specified otherwise.
+
+  [finger]
+  ; This option sets the address the Finger server is going to bind to. If
+  ; you're planning to do port forwarding, you might want to set this
+  ; option to 127.0.0.1 so that the port chosen above won't get exposed.
+  address=0.0.0.0
+
+  ; The port the Finger server is going to bind to.
+  ; Finger protocol runs on port 79, but some operating systems
+  ; does not allow a normal user to open up port 1 ~ 1024 without
+  ; administrator priviledge; yet it's also kind of a security concern to
+  ; run this software with priviledged user. So - are you planning to run
+  ; this server with a normal user and have port forwarding set up
+  ; elsewhere (e.g. you're running this with Docker or Unikraft or other
+  ; kind of encapsulation)? If yes, then pick the port number this server
+  ; is going to bind to.
+  port=79
+
+  [content]
+  ; The path to the "home page" file of the server. Displayed on empty
+  ; queries, which were originally meant to list all users.
+  homepage_path=...
+
+  ; The base directory for storing the content from the users.
+  base_dir=...
+
+  ; The base directory for storing the users' passwords. The users'
+  ; passwords are stored in text files that contains the password hashes
+  ; in this directory; they are used to edit one's content from the HTTP
+  ; frontend.
+  password_dir=...
+
+  [http]
+  ; The address and port the HTTP server will bind to.
+  port=4079
+  address=127.0.0.1
+
+  ; The directory for static assets that might get used in the HTTP
+  ; frontend (e.g. stylesheets).
+  static_assets_dir=...
+
+  ; This option is to determine the site name used for the HTTP proxy.
+  ; Appears in a few places (e.g. the index page for the HTTP proxy).
+  site_name="A Zenfinger server"
+
+  [admin]
+  ; The password for the administrator of this server. Used to edit this
+  ; very configuration and other things.
+  password="$2b$08$...."
+#+end_src
+
 ** Server requests
 
 A few requests are reserved and cannot be used as user name:

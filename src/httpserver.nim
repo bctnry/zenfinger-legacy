@@ -1,8 +1,13 @@
 import std/[asyncnet, asyncdispatch, asynchttpserver]
+import std/cookies
+import std/strtabs
+import std/times
 import config
 import log
 import contentresolve
 import httpadmin
+import httplogin
+import httpreg
 from std/strutils import parseInt, startsWith
 from htmlgen as html import nil
 
@@ -23,8 +28,9 @@ proc proxyTemplate(req: string, x: string): string =
     )
   )
 
-proc renderIndexPage(x: string, config: ZConfig): string =
+proc renderIndexPage(req: Request, x: string, config: ZConfig): string =
   let siteName = config.getConfig(CONFIG_GROUP_HTTP, CONFIG_KEY_HTTP_SITE_NAME)
+  let currentCookie = req.headers.getOrDefault("cookie").parseCookies
   return (
     html.html(
       html.head(
@@ -36,33 +42,107 @@ proc renderIndexPage(x: string, config: ZConfig): string =
         html.h1(siteName),
         html.pre(x),
         html.hr(),
-        html.p("Powered by Zenfinger")
+        html.p("Powered by Zenfinger"),
+        (
+          if currentCookie.hasKey("currentUser"):
+           html.p(
+             "Currently logged in as " & currentCookie["currentUser"] & ". ",
+             html.a(href="/logout", "Logout"),
+             if currentCookie["currentUser"] == "admin":
+               """ <a href="/zenfinger-admin">Admin</a>"""
+             else:
+               ""
+           )
+         else:
+           html.p(
+             html.a(href="/login", "Login"),
+             " ",
+             html.a(href="/reg", "Register")
+           )
+        )
       )
     )
   )
 
+proc checkSession(x: StringTableRef, k: StringTableRef): bool =
+  return (
+    x.hasKey(k["currentUser"]) and
+    (x[k["currentUser"]] == k["currentSession"]) and
+    x.hasKey(k["currentSession"]) and
+    (x[k["currentSession"]] == k["currentUser"])
+  )
+
+proc invalidCookie(x: StringTableRef): bool =
+  return (
+    (x.hasKey("currentUser") and not x.hasKey("currentSession")) or
+    (x.hasKey("currentSession") and not x.hasKey("currentUser"))
+  )
+
+proc logout(sessionStore: StringTableRef, req: Request) {.async.} =
+  let cookieRemovingDT = now() - initDuration(days=7)
+  let currentCookie = req.headers.getOrDefault("cookie").parseCookies
+  let cookies = @[
+    ("Set-Cookie", setCookie(
+      "currentUser",
+      "",
+      secure=true,
+      httpOnly=true,
+      expires=cookieRemovingDT
+    ).substr("Set-Cookie: ".len)),
+    ("Set-Cookie", setCookie(
+      "currentSession",
+      "",
+      secure=true,
+      httpOnly=true,
+      expires=cookieRemovingDT
+    ).substr("Set-Cookie: ".len)),
+    ("Location", "/"),
+    ("Content-Length", "0")
+  ]
+  if sessionStore.hasKey(currentCookie["currentSession"]):
+    sessionStore.del(currentCookie["currentSession"])
+  if sessionStore.hasKey(currentCookie["currentUser"]):
+    sessionStore.del(currentCookie["currentUser"])
+  await req.respond(Http303, "", cookies.newHttpHeaders())
+
 proc serveHTTP*(config: ZConfig) {.async.} =
   var server = newAsyncHttpServer()
+  var sessionStore = newStringTable()
   proc cb(req: Request) {.async.} =
     asyncCheck log("HTTP Request: " & $req.reqMethod & " " & req.url.path & req.url.query)
+    let currentCookie = req.headers.getOrDefault("cookie").parseCookies
+    if (
+      invalidCookie(currentCookie) or
+      (currentCookie.hasKey("currentUser") and
+       currentCookie.hasKey("currentSession") and
+       not sessionStore.checkSession(currentCookie))
+    ):
+      await logout(sessionStore, req)
+      return
     var response = ""
     if req.url.path.startsWith("/~"):
       let fingerReq = req.url.path.substr("/~".len)
       let r = await processRequest(fingerReq, config)
       response = "<!DOCTYPE html>\n" & proxyTemplate(fingerReq, r)
     elif req.url.path == "/reg":
-      response = "Shh... register page not done yet!"
+      await handleReg(req, sessionStore, config)
     elif req.url.path.startsWith("/edit"):
       response = "Shh... user edit page not done yet!"
-    elif req.url.path.startsWith("/admin"):
-      await handleAdmin(req, config)
+    elif req.url.path == "/login":
+      await handleLogin(req, sessionStore, config)
+    elif req.url.path == "/logout/":
+      await req.respond(Http303, "", {"Location": "/logout", "Content-Length": "0"}.newHttpHeaders())
+    elif req.url.path == "/logout":
+      await logout(sessionStore, req)
+    elif req.url.path.startsWith("/zenfinger-admin"):
+      await handleAdmin(req, sessionStore, config)
       return
     elif req.url.path != "/":
-      await req.respond(Http308, "", {"Location": "/", "Content-Length": "0"}.newHttpHeaders())
+      await req.respond(Http307, "", {"Location": "/", "Content-Length": "0"}.newHttpHeaders())
       return
     else:
       let r = await processRequest("", config)
-      response = "<!DOCTYPE html>\n" & renderIndexPage(r, config)
+      response = "<!DOCTYPE html>\n" & renderIndexPage(req, r, config)
       
     let headers = {"Content-type": "text/html; charset=utf-8"}
     await req.respond(Http200, response, headers.newHttpHeaders())
