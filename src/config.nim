@@ -12,10 +12,8 @@
 import std/paths
 import std/files
 import std/parsecfg
-import std/strtabs
 import std/asyncfile
-import checksums/bcrypt
-from std/asyncdispatch import asyncCheck
+import std/asyncdispatch
 from std/strutils import strip
 from aux import getExecutableDir
 from log import log

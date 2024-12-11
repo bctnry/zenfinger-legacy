@@ -1,4 +1,4 @@
-import std/[asyncnet, asyncdispatch, asynchttpserver]
+import std/asyncdispatch
 import std/random
 import std/net
 import std/cmdline

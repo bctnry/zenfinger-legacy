@@ -1,14 +1,10 @@
-import std/[asyncnet, asyncdispatch, asynchttpserver]
+import std/[asyncdispatch, asynchttpserver]
 import std/cookies
 import std/strtabs
-import std/times
 import checksums/bcrypt
 import config
-import log
-import contentresolve
 import urlencoded
 import dbutil
-import aux
 from std/strutils import parseInt, startsWith, strip
 from std/parsecfg import getSectionValue
 from htmlgen as html import nil

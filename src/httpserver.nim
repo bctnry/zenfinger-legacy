@@ -1,4 +1,4 @@
-import std/[asyncnet, asyncdispatch, asynchttpserver]
+import std/[asyncdispatch, asynchttpserver]
 import std/cookies
 import std/strtabs
 import std/times
@@ -8,6 +8,7 @@ import contentresolve
 import httpadmin
 import httplogin
 import httpreg
+import httpedit
 from std/strutils import parseInt, startsWith
 from htmlgen as html import nil
 
@@ -51,7 +52,7 @@ proc renderIndexPage(req: Request, x: string, config: ZConfig): string =
              if currentCookie["currentUser"] == "admin":
                """ <a href="/zenfinger-admin">Admin</a>"""
              else:
-               ""
+               """ <a href="/edit-user/""" & currentCookie["currentuser"] & """">Edit</a> <a href="/~""" & currentCookie["currentuser"] & """">Profile</a>"""
            )
          else:
            html.p(
@@ -126,8 +127,9 @@ proc serveHTTP*(config: ZConfig) {.async.} =
       response = "<!DOCTYPE html>\n" & proxyTemplate(fingerReq, r)
     elif req.url.path == "/reg":
       await handleReg(req, sessionStore, config)
-    elif req.url.path.startsWith("/edit"):
-      response = "Shh... user edit page not done yet!"
+    elif req.url.path.startsWith("/edit-user/"):
+      let x = req.url.path.substr("/edit-user/".len)
+      await handleEdit(req, sessionStore, config, x)
     elif req.url.path == "/login":
       await handleLogin(req, sessionStore, config)
     elif req.url.path == "/logout/":

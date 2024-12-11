@@ -1,6 +1,5 @@
-import std/[asyncnet, asyncfile, asyncdispatch]
+import std/[asyncnet, asyncdispatch]
 import std/paths
-import std/files
 import log
 import config
 import contentresolve

@@ -1,10 +1,8 @@
-import std/[asyncnet, asyncdispatch, asynchttpserver]
+import std/[asyncdispatch, asynchttpserver]
 import std/cookies
 import std/strtabs
 import std/times
 import config
-import log
-import contentresolve
 import urlencoded
 import dbutil
 import aux
@@ -49,7 +47,7 @@ proc handleLogin*(req: Request, session: StringTableRef, config: ZConfig) {.asyn
     currentCookie["currentSession"] == session[currentCookie["currentUser"]] and
     currentCookie["currentUser"] == session[currentCookie["currentSession"]]
   ):
-    await req.respond(Http308, "", {"Location": "/", "Content-Length": "0"}.newHttpHeaders())
+    await req.respond(Http303, "", {"Location": "/", "Content-Length": "0"}.newHttpHeaders())
   else:
     if req.url.path == "/login":
       case req.reqMethod:

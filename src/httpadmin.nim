@@ -1,15 +1,13 @@
-import std/[asyncnet, asyncdispatch, asynchttpserver]
+import std/[asyncdispatch, asynchttpserver]
 import std/strtabs
 import std/asyncfile
 import std/cookies
 import config
-import log
-import contentresolve
 import urlencoded
+import dbutil
 from std/strutils import parseInt, startsWith, split, join
 from std/parsecfg import getSectionValue
 from htmlgen as html import nil
-from dbutil import getAllPendingUser, approveUser
 
 proc adminPath(x: string): string = "/zenfinger-admin" & x
 
@@ -145,12 +143,15 @@ proc renderAdminPage(config: ZConfig): string =
 proc renderNewUserQueue(config: ZConfig, pendingUserList: seq[string]): string =
   let siteName = config.getConfig(CONFIG_GROUP_HTTP, CONFIG_KEY_HTTP_SITE_NAME)
   var r: seq[string] = @[]
+  echo pendingUserList
   for k in pendingUserList:
     r.add(
       html.tr(
         html.td(k),
         html.td(config.registerQueue.getSectionValue("", k).split(";")[0]),
-        html.td(html.a(href=("/newuser-approve/" & k).adminPath, "approve"))
+        html.td(config.registerQueue.getSectionValue("", k).split(";")[2]),
+        html.td(html.a(href=("/newuser-approve/" & k).adminPath, "approve")),
+        html.td(html.a(href=("/newuser-disapprove/" & k).adminPath, "disapprove")),
       )
     )
   return (
@@ -166,7 +167,43 @@ proc renderNewUserQueue(config: ZConfig, pendingUserList: seq[string]): string =
           html.tr(
             html.th("username"),
             html.th("application datetime"),
-            html.th("approve")
+            html.th("reason"),
+            html.th("approve"),
+            html.th("disapprove"),
+          ),
+          r.join("")
+        ),
+        html.hr(),
+        html.p(html.a(href="/", "Back"))
+      )
+    )
+  )
+
+proc renderUserManagement(config: ZConfig, userList: seq[string]): string =
+  let siteName = config.getConfig(CONFIG_GROUP_HTTP, CONFIG_KEY_HTTP_SITE_NAME)
+  var r: seq[string] = @[]
+  for k in userList:
+    r.add(
+      html.tr(
+        html.td(k),
+        html.td(html.a(href=("/edit-user/" & k), "edit")),
+        html.td(html.a(href=("/delete-user/" & k).adminPath, "delete"))
+      )
+    )
+  return (
+    html.html(
+      html.head(
+        html.meta(charset="utf-8"),
+        html.title("user management :: admin panel :: " & siteName),
+      ),
+      html.body(
+        html.h1("User Management"),
+        html.hr(),
+        html.table(
+          html.tr(
+            html.th("username"),
+            html.th("edit"),
+            html.th("delete"),
           ),
           r.join("")
         ),
@@ -207,8 +244,21 @@ proc handleAdmin*(req: Request, session: StringTableRef, config: ZConfig) {.asyn
                       {"Content-Type": "text/html; charset=utf-8"}.newHttpHeaders())
   elif req.url.path.startsWith("/newuser-approve/".adminPath):
     let un = req.url.path.substr("/newuser-approve/".adminPath.len)
-    echo "un ", un
     await approveUser(config, un)
+    await req.respond(Http200, renderDonePage(config),
+                      {"Content-Type": "text/html; charset=utf-8"}.newHttpHeaders())
+  elif req.url.path.startsWith("/newuser-disapprove/".adminPath):
+    let un = req.url.path.substr("/newuser-disapprove/".adminPath.len)
+    await disapproveUser(config, un)
+    await req.respond(Http200, renderDonePage(config),
+                      {"Content-Type": "text/html; charset=utf-8"}.newHttpHeaders())
+  elif req.url.path == "/user".adminPath or req.url.path == "/user/".adminPath:
+    let s = await listAllUser(config)
+    echo s
+    await req.respond(Http200, renderUserManagement(config, s), {"Content-Type": "text/html; charset=utf-8"}.newHttpHeaders())
+  elif req.url.path.startsWith("/delete-user/".adminPath):
+    let un = req.url.path.substr("/delete-user/".adminPath.len)
+    await deleteUser(config, un)
     await req.respond(Http200, renderDonePage(config),
                       {"Content-Type": "text/html; charset=utf-8"}.newHttpHeaders())
   elif req.url.path == "".adminPath or req.url.path == "/".adminPath:
