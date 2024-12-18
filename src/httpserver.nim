@@ -9,25 +9,11 @@ import httpadmin
 import httplogin
 import httpreg
 import httpedit
-from std/strutils import parseInt, startsWith
+import zftemplate
+from std/strutils import parseInt, startsWith, join
 from htmlgen as html import nil
 
-proc proxyTemplate(req: string, x: string): string =
-  return (
-    html.html(
-      html.head(
-        html.meta(charset="utf-8"),
-        html.title(req),
-        html.style("pre { font-size: 1rem }")
-      ),
-      html.body(
-        html.h1(req),
-        html.pre(x),
-        html.hr(),
-        html.p("Powered by Zenfinger")
-      )
-    )
-  )
+useTemplate(proxyTemplate, "proxy.template.html")
 
 proc renderIndexPage(req: Request, x: string, config: ZConfig): string =
   let siteName = config.getConfig(CONFIG_GROUP_HTTP, CONFIG_KEY_HTTP_SITE_NAME)
@@ -124,7 +110,11 @@ proc serveHTTP*(config: ZConfig) {.async.} =
     if req.url.path.startsWith("/~"):
       let fingerReq = req.url.path.substr("/~".len)
       let r = await processRequest(fingerReq, config)
-      response = "<!DOCTYPE html>\n" & proxyTemplate(fingerReq, r)
+      let prop = newStringTable()
+      prop["siteName"] = config.getConfig(CONFIG_GROUP_HTTP, CONFIG_KEY_HTTP_SITE_NAME)
+      prop["req"] = fingerReq
+      prop["content"] = r
+      response = proxyTemplate(prop)
     elif req.url.path == "/reg":
       await handleReg(req, sessionStore, config)
     elif req.url.path.startsWith("/edit-user/"):

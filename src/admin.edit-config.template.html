@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>edit config :: admin panel :: {{siteName}}</title>
+  </head>
+  <body>
+    <h1>Edit Config</h1>
+    <p><b>Note</b>: Please fill in the field that you want to change ONLY.</p>
+    <hr />
+    <form action="" method="POST">
+      <h2>Section <code>finger</code></h2>
+      <label for="finger-address">Server bind address:</label>
+      <input name="finger-address" id="finger-address" /><br />
+      <label for="finger-port">Server bind port:</label>
+      <input name="finger-port" id="finger-port" /><br />
+      <hr />
+
+      <h2>Section <code>content</code></h2>
+      <label for "content-homepage-path">Homepage path:</label>
+      <input name="content-homepage-path" id="content-homepage-path" /><br />
+      <label for "content-base-dir">Base directory:</label>
+      <input name="content-base-dir" id="content-base-dir" /><br />
+      <label for "content-password-dir">Password dir:</label>
+      <input name="content-password-dir" id="content-password-dir" /><br />
+      <hr />
+
+      <h2>Section <code>http</code></h2>
+      <label for "http-port">HTTP server bind port:</label>
+      <input name="http-port" id="http-port" /><br />
+      <label for "http-address">HTTP server bind address:</label>
+      <input name="http-address" id="http-address" /><br />
+      <label for "http-static-assets-dir">Static assets directory:</label>
+      <input name="http-static-assets-dir" id="http-static-assets-dir" /><br />
+      <label for "http-site-name">HTTP site name:</label>
+      <input name="http-site-name" id="http-site-name" /><br />
+        
+      <hr />
+      <input type="submit" value="Save" />
+    </form>
+    <hr />
+    <p><a href="/">Back</a>
+  </body>
+</html>
+      

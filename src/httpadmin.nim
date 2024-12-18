@@ -5,140 +5,37 @@ import std/cookies
 import config
 import urlencoded
 import dbutil
+import zftemplate
 from std/strutils import parseInt, startsWith, split, join
 from std/parsecfg import getSectionValue
 from htmlgen as html import nil
 
 proc adminPath(x: string): string = "/zenfinger-admin" & x
 
+useTemplate(adminEditConfigTemplate, "admin.edit-config.template.html")
 proc renderEditConfigPage(config: ZConfig): string =
-  let siteName = config.getConfig(CONFIG_GROUP_HTTP, CONFIG_KEY_HTTP_SITE_NAME)
-  return (
-    html.html(
-      html.head(
-        html.meta(charset="utf-8"),
-        html.title("edit config :: admin panel :: " & siteName),
-      ),
-      html.body(
-        html.h1("Edit Config"),
-        html.p(
-          html.b("Note"),
-          """: Please fill in the field that you want to change ONLY."""
-        ),
-        html.hr(),
-        """<form action="" method="POST">""",
-        
-        html.h2("Section ", html.code("finger")),
-        """<label for="finger-address">Server bind address:</label>""",
-        """<input name="finger-address" id="finger-address" />""",
-        html.br(),
-        """<label for="finger-port">Server bind port:</label>""",
-        """<input name="finger-port" id="finger-port" />""",
-        html.br(),
+  var prop = newStringTable()
+  prop["siteName"] = config.getConfig(CONFIG_GROUP_HTTP, CONFIG_KEY_HTTP_SITE_NAME)
+  return adminEditConfigTemplate(prop)
 
-        html.hr(),
-        
-        html.h2("Section ", html.code("content")),
-        """<label for "content-homepage-path">Homepage path:</label>""",
-        """<input name="content-homepage-path" id="content-homepage-path" />""",
-        html.br(),
-        """<label for "content-base-dir">Base directory:</label>""",
-        """<input name="content-base-dir" id="content-base-dir" />""",
-        html.br(),
-        """<label for "content-password-dir">Password dir:</label>""",
-        """<input name="content-password-dir" id="content-password-dir" />""",
-        html.br(),
-
-        html.hr(),
-
-        html.h2("Section ", html.code("http")),
-        """<label for "http-port">HTTP server bind port:</label>""",
-        """<input name="http-port" id="http-port" />""",
-        html.br(),
-        """<label for "http-address">HTTP server bind address:</label>""",
-        """<input name="http-address" id="http-address" />""",
-        html.br(),
-        """<label for "http-static-assets-dir">Static assets directory:</label>""",
-        """<input name="http-static-assets-dir" id="http-static-assets-dir" />""",
-        html.br(),
-        """<label for "http-site-name">HTTP site name:</label>""",
-        """<input name="http-site-name" id="http-site-name" />""",
-        html.br(),
-        
-        html.hr(),
-        """<input type="submit" value="Save" />""",
-        """</form>""",
-        html.hr(),
-        html.p(html.a(href="".adminPath, "Back"))
-      )
-    )
-  )
-
+useTemplate(adminEditIndexTemplate, "admin.edit-index.template.html")
 proc renderEditIndexPage(config: ZConfig, x: string): string =
-  let siteName = config.getConfig(CONFIG_GROUP_HTTP, CONFIG_KEY_HTTP_SITE_NAME)
-  return (
-    html.html(
-      html.head(
-        html.meta(charset="utf-8"),
-        html.title("edit index :: admin panel :: " & siteName),
-      ),
-      html.body(
-        html.h1("Edit index page"),
-        html.hr(),
-        """<form action="" method="POST">""",
-        """<label for="content">Content: </label><br />""",
-        """<textarea name="content", id="content" col="80" row="25">""",
-        x,
-        """</textarea><br />""",
-        """<input type="submit" value="Save" />""",
-        """</form>""",
-        html.hr(),
-        html.p(html.a(href="".adminPath, "Back"))
-      )
-    )
-  )
+  let prop = newStringTable()
+  prop["siteName"] = config.getConfig(CONFIG_GROUP_HTTP, CONFIG_KEY_HTTP_SITE_NAME)
+  prop["x"] = x
+  return adminEditIndexTemplate(prop)
   
-
+useTemplate(adminDonePageTemplate, "admin.done.template.html")
 proc renderDonePage(config: ZConfig): string =
-  let siteName = config.getConfig(CONFIG_GROUP_HTTP, CONFIG_KEY_HTTP_SITE_NAME)
-  return (
-    html.html(
-      html.head(
-        html.meta(charset="utf-8"),
-        html.title("admin panel :: " & siteName),
-      ),
-      html.body(
-        html.h1("Admin Panel"),
-        html.hr(),
-        html.p(
-          "Action complete. Click ",
-          html.a(href="".adminPath, "here"),
-          " to go back to the admin panel."
-        )
-      )
-    )
-  )
-  
+  let prop = newStringTable()
+  prop["siteName"] = config.getConfig(CONFIG_GROUP_HTTP, CONFIG_KEY_HTTP_SITE_NAME)
+  return adminDonePageTemplate(prop)
+
+useTemplate(adminPageTemplate, "admin.template.html")
 proc renderAdminPage(config: ZConfig): string =
-  let siteName = config.getConfig(CONFIG_GROUP_HTTP, CONFIG_KEY_HTTP_SITE_NAME)
-  return (
-    html.html(
-      html.head(
-        html.meta(charset="utf-8"),
-        html.title("admin panel :: " & siteName),
-      ),
-      html.body(
-        html.h1("Admin Panel"),
-        html.hr(),
-        html.p(html.a(href="/edit-config".adminPath, "Edit Config")),
-        html.p(html.a(href="/edit-index".adminPath, "Edit Index")),
-        html.p(html.a(href="/newuser-queue".adminPath, "New User Queue")),
-        html.p(html.a(href="/user".adminPath, "User Management")),
-        html.hr(),
-        html.p(html.a(href="/", "Back"))
-      )
-    )
-  )
+  let prop = newStringTable()
+  prop["siteName"] = config.getConfig(CONFIG_GROUP_HTTP, CONFIG_KEY_HTTP_SITE_NAME)
+  return adminPageTemplate(prop)
 
 proc renderNewUserQueue(config: ZConfig, pendingUserList: seq[string]): string =
   let siteName = config.getConfig(CONFIG_GROUP_HTTP, CONFIG_KEY_HTTP_SITE_NAME)
