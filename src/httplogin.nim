@@ -2,42 +2,21 @@ import std/[asyncdispatch, asynchttpserver]
 import std/cookies
 import std/strtabs
 import std/times
+import std/json
 import config
 import urlencoded
 import dbutil
 import aux
+import zftemplate
 from std/strutils import parseInt, startsWith
 from htmlgen as html import nil
 
+defineTemplate(loginPageTemplate, "templates/login.template.html")
 proc renderLoginPage(config: ZConfig, message: string = ""): string =
-  let siteName = config.getConfig(CONFIG_GROUP_HTTP, CONFIG_KEY_HTTP_SITE_NAME)
-  return (
-    html.html(
-      html.head(
-        html.meta(charset="utf-8"),
-        html.title("Login :: ", siteName)
-      ),
-      html.body(
-        html.h1("Login"),
-        html.hr(),
-        (if message.len > 0:
-           """<span style="color: red">""" & message & """</span>"""
-         else:
-           ""),
-        """<form action="" method="POST">""",
-        """<label for="username">User name: </label>""",
-        """<input name="username" id="username" required />""",
-        html.br(),
-        """<label for="password">Password: </label>""",
-        """<input type="password" name="password" id="password" required />""",
-        html.br(),
-        """<input type="submit" value="Login" />""",
-        """</form>""",
-        html.hr(),
-        html.p("Powered by Zenfinger")
-      )
-    )
-  )
+  var prop = newProperty()
+  prop["siteName"] = config.getConfig(CONFIG_GROUP_HTTP, CONFIG_KEY_HTTP_SITE_NAME)
+  prop["message"] = message
+  return loginPageTemplate(prop)
 
 proc handleLogin*(req: Request, session: StringTableRef, config: ZConfig) {.async.} =
   let currentCookie = req.headers.getOrDefault("cookie").parseCookies

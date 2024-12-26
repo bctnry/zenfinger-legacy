@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <title>register :: {{prop["siteName"]}}</title>
+  </head>
+  <body>
+    <h1>Register</h1>
+    <hr />
+    {{if prop["message"].length > 0}}
+    <span style="color:red">{{prop["message"]}}</span>
+    {{/if}}
+    <form action="" method="POST">
+      <label for="username">User name: </label>
+      <input name="username" id="username" required /><br />
+      <label for="password">Password: </label>
+      <input type="password" name="password" id="password" required /><br />
+      <label for="reason">Reason: </label>
+      <textarea name="reason" id="reason"></textarea>
+      <input type="submit" value="Register" />
+    </form>
+    <hr />
+    <p>Powered by Zenfinger</p>
+  </body>
+</html>

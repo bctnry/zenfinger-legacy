@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>new user queue :: admin panel :: {{prop["siteName"]}}</title>
+  </head>
+  <body>
+    <h1>New User Queue</h1>
+    <hr />
+    <table>
+      <tr>
+	<th>username</th>
+	<th>application datetime</th>
+	<th>reason</th>
+	<th>approve</th>
+	<th>disapprove</th>
+      </tr>
+      {{for k in prop["queue"]}}
+      <tr>
+	<td>{{k["username"]}}</td>
+	<td>{{k["datetime"]}}</td>
+	<td>{{k["reason"]}}</td>
+	<td><a href="newuser-approve/{{k["username"]}}">approve</a></td>
+	<td><a href="newuser-disapprove/{{k["username"]}}">disapprove</a></td>
+      </tr>
+      {{/for}}
+    </table>
+    <hr />
+    <a href="/zenfinger-admin">Back</a>
+  </body>
+</html>

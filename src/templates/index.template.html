@@ -1,0 +1,31 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>{{prop["siteName"]}}</title>
+    <style>
+      pre { font-size: 1rem }
+    </style>
+  </head>
+  <body>
+    <h1>{{prop["siteName"]}}</h1>
+    <hr />
+    <pre>{{prop["x"]}}</pre>
+    <hr />
+    {{if prop.hasKey("currentUser")}}
+    <p>Currently logged in as {{prop["currentUser"]}}.
+      <a href="/logout">Logout</a>
+      {{if prop["currentUser"].getStr("") == "admin"}}
+      <a href="/zenfinger-admin">Admin</a>
+      {{else}}
+      <a href="/edit-user/{{prop["currentUser"]}}">Edit</a>
+      <a href="/~{{prop["currentUser"]}}">Profile</a>
+      {{/if}}   
+    </p>
+    {{else}}
+    <p><a href="/login">Login</a> <a href="/reg">Register</a></p>
+    {{/if}}
+
+    <hr />
+    <p>Powered by Zenfinger</p>
+  </body>
+</html>

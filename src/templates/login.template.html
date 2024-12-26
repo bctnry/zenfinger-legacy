@@ -1,13 +1,13 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <title>Login :: {{siteName}}</title>
+    <title>Login :: {{prop["siteName"]}}</title>
   </head>
   <body>
     <h1>Login</h1>
     <hr />
-    {{if message.len > 0}}
-      <span style="color: red">{{message}}</span>
+    {{if prop["message"].length > 0}}
+      <span style="color: red">{{prop["message"]}}</span>
     {{/if}}
     <form action="" method="POST">
       <label for="username">User name: </label>

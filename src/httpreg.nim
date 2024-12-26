@@ -1,87 +1,34 @@
 import std/[asyncdispatch, asynchttpserver]
 import std/cookies
 import std/strtabs
+import std/json
 import checksums/bcrypt
 import config
 import urlencoded
 import dbutil
+import zftemplate
 from std/strutils import parseInt, startsWith, strip
 from std/parsecfg import getSectionValue
 from htmlgen as html import nil
 
+defineTemplate(regSubmittedPageTemplate, "templates/reg.submitted.template.html")
 proc renderRegSubmittedPage(config: ZConfig): string =
-  let siteName = config.getConfig(CONFIG_GROUP_HTTP, CONFIG_KEY_HTTP_SITE_NAME)
-  return (
-    html.html(
-      html.head(
-        html.meta(charset="utf-8"),
-        html.title("Register :: ", siteName)
-      ),
-      html.body(
-        html.h1("Register"),
-        html.hr(),
-        html.p("Application sent. You should be able to login once the admin has approved your application."),
-        html.p("Click ", html.a(href="/", "here"), " to return to home page."),
-        html.hr(),
-        html.p("Powered by Zenfinger")
-      )
-    )
-  )
-  
-proc renderRegBlockedPage(config: ZConfig): string =
-  let siteName = config.getConfig(CONFIG_GROUP_HTTP, CONFIG_KEY_HTTP_SITE_NAME)
-  return (
-    html.html(
-      html.head(
-        html.meta(charset="utf-8"),
-        html.title("Register :: ", siteName)
-      ),
-      html.body(
-        html.h1("Register"),
-        html.hr(),
-        html.p(
-          "You are not allowed to do this when logged in. ",
-          html.a(href="/logout", "Logout"), " and then try again",
-          " or click ", html.a(href="/", "here"), " to go back to home page."
-        ),
-        html.hr(),
-        html.p("Powered by Zenfinger")
-      )
-    )
-  )
-      
+  var prop = newProperty()
+  prop["siteName"] = config.getConfig(CONFIG_GROUP_HTTP, CONFIG_KEY_HTTP_SITE_NAME)
+  return regSubmittedPageTemplate(prop)
 
+defineTemplate(regBlockedPageTemplate, "templates/reg.blocked.template.html")
+proc renderRegBlockedPage(config: ZConfig): string =
+  var prop = newProperty()
+  prop["siteName"] = config.getConfig(CONFIG_GROUP_HTTP, CONFIG_KEY_HTTP_SITE_NAME)
+  return regBlockedPageTemplate(prop)
+
+defineTemplate(regPageTemplate, "templates/reg.template.html")
 proc renderRegPage(config: ZConfig, message: string = ""): string =
-  let siteName = config.getConfig(CONFIG_GROUP_HTTP, CONFIG_KEY_HTTP_SITE_NAME)
-  return (
-    html.html(
-      html.head(
-        html.meta(charset="utf-8"),
-        html.title("Register :: ", siteName)
-      ),
-      html.body(
-        html.h1("Register"),
-        html.hr(),
-        (if message.len > 0:
-           """<span style="color: red">""" & message & """</span>"""
-         else:
-           ""),
-        """<form action="" method="POST">""",
-        """<label for="username">User name: </label>""",
-        """<input name="username" id="username" required />""",
-        html.br(),
-        """<label for="password">Password: </label>""",
-        """<input type="password" name="password" id="password" required />""",
-        html.br(),
-        """<label for="reason">Reason: </label>""",
-        """<textarea name="reason" id="reason"></textarea>""",
-        """<input type="submit" value="Register" />""",
-        """</form>""",
-        html.hr(),
-        html.p("Powered by Zenfinger")
-      )
-    )
-  )
+  var prop = newProperty()
+  prop["siteName"] = config.getConfig(CONFIG_GROUP_HTTP, CONFIG_KEY_HTTP_SITE_NAME)
+  prop["message"] = message
+  return regPageTemplate(prop)
 
 proc handleReg*(req: Request, session: StringTableRef, config: ZConfig) {.async.} =
   let currentCookie = req.headers.getOrDefault("cookie").parseCookies

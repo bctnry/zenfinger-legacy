@@ -2,6 +2,8 @@ import std/[asyncdispatch, asynchttpserver]
 import std/strtabs
 import std/asyncfile
 import std/cookies
+import std/json
+import std/tables
 import config
 import urlencoded
 import dbutil
@@ -12,69 +14,45 @@ from htmlgen as html import nil
 
 proc adminPath(x: string): string = "/zenfinger-admin" & x
 
-useTemplate(adminEditConfigTemplate, "admin.edit-config.template.html")
+defineTemplate(adminEditConfigTemplate, "templates/admin.edit-config.template.html")
 proc renderEditConfigPage(config: ZConfig): string =
-  var prop = newStringTable()
+  var prop = newProperty()
   prop["siteName"] = config.getConfig(CONFIG_GROUP_HTTP, CONFIG_KEY_HTTP_SITE_NAME)
   return adminEditConfigTemplate(prop)
 
-useTemplate(adminEditIndexTemplate, "admin.edit-index.template.html")
+defineTemplate(adminEditIndexTemplate, "templates/admin.edit-index.template.html")
 proc renderEditIndexPage(config: ZConfig, x: string): string =
-  let prop = newStringTable()
+  let prop = newProperty()
   prop["siteName"] = config.getConfig(CONFIG_GROUP_HTTP, CONFIG_KEY_HTTP_SITE_NAME)
   prop["x"] = x
   return adminEditIndexTemplate(prop)
   
-useTemplate(adminDonePageTemplate, "admin.done.template.html")
+defineTemplate(adminDonePageTemplate, "templates/admin.done.template.html")
 proc renderDonePage(config: ZConfig): string =
-  let prop = newStringTable()
+  let prop = newProperty()
   prop["siteName"] = config.getConfig(CONFIG_GROUP_HTTP, CONFIG_KEY_HTTP_SITE_NAME)
   return adminDonePageTemplate(prop)
 
-useTemplate(adminPageTemplate, "admin.template.html")
+defineTemplate(adminPageTemplate, "templates/admin.template.html")
 proc renderAdminPage(config: ZConfig): string =
-  let prop = newStringTable()
+  let prop = newProperty()
   prop["siteName"] = config.getConfig(CONFIG_GROUP_HTTP, CONFIG_KEY_HTTP_SITE_NAME)
   return adminPageTemplate(prop)
 
+defineTemplate(newUserQueueTemplate, "templates/admin.new-user-queue.template.html")
 proc renderNewUserQueue(config: ZConfig, pendingUserList: seq[string]): string =
   let siteName = config.getConfig(CONFIG_GROUP_HTTP, CONFIG_KEY_HTTP_SITE_NAME)
-  var r: seq[string] = @[]
-  echo pendingUserList
+  var userqueue: seq[Table[string, string]] = @[]
   for k in pendingUserList:
-    r.add(
-      html.tr(
-        html.td(k),
-        html.td(config.registerQueue.getSectionValue("", k).split(";")[0]),
-        html.td(config.registerQueue.getSectionValue("", k).split(";")[2]),
-        html.td(html.a(href=("/newuser-approve/" & k).adminPath, "approve")),
-        html.td(html.a(href=("/newuser-disapprove/" & k).adminPath, "disapprove")),
-      )
-    )
-  return (
-    html.html(
-      html.head(
-        html.meta(charset="utf-8"),
-        html.title("new user queue :: admin panel :: " & siteName),
-      ),
-      html.body(
-        html.h1("New User Queue"),
-        html.hr(),
-        html.table(
-          html.tr(
-            html.th("username"),
-            html.th("application datetime"),
-            html.th("reason"),
-            html.th("approve"),
-            html.th("disapprove"),
-          ),
-          r.join("")
-        ),
-        html.hr(),
-        html.p(html.a(href="/", "Back"))
-      )
-    )
-  )
+    userqueue.add({
+      "username": k,
+      "datetime": config.registerQueue.getSectionValue("", k).split(";")[0],
+      "reason": config.registerQueue.getSectionValue("", k).split(";")[2]
+      }.toTable)
+  var prop = newProperty()
+  prop["siteName"] = siteName
+  prop["queue"] = userqueue
+  return newUserQueueTemplate(prop)
 
 proc renderUserManagement(config: ZConfig, userList: seq[string]): string =
   let siteName = config.getConfig(CONFIG_GROUP_HTTP, CONFIG_KEY_HTTP_SITE_NAME)

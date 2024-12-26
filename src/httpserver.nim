@@ -2,6 +2,7 @@ import std/[asyncdispatch, asynchttpserver]
 import std/cookies
 import std/strtabs
 import std/times
+import std/json
 import config
 import log
 import contentresolve
@@ -10,46 +11,21 @@ import httplogin
 import httpreg
 import httpedit
 import zftemplate
+import route
 from std/strutils import parseInt, startsWith, join
 from htmlgen as html import nil
 
-useTemplate(proxyTemplate, "proxy.template.html")
-
+defineTemplate(proxyTemplate, "templates/proxy.template.html")
+defineTemplate(indexTemplate, "templates/index.template.html")
 proc renderIndexPage(req: Request, x: string, config: ZConfig): string =
   let siteName = config.getConfig(CONFIG_GROUP_HTTP, CONFIG_KEY_HTTP_SITE_NAME)
   let currentCookie = req.headers.getOrDefault("cookie").parseCookies
-  return (
-    html.html(
-      html.head(
-        html.meta(charset="utf-8"),
-        html.title(siteName),
-        html.style("pre { font-size: 1rem }")
-      ),
-      html.body(
-        html.h1(siteName),
-        html.pre(x),
-        html.hr(),
-        html.p("Powered by Zenfinger"),
-        (
-          if currentCookie.hasKey("currentUser"):
-           html.p(
-             "Currently logged in as " & currentCookie["currentUser"] & ". ",
-             html.a(href="/logout", "Logout"),
-             if currentCookie["currentUser"] == "admin":
-               """ <a href="/zenfinger-admin">Admin</a>"""
-             else:
-               """ <a href="/edit-user/""" & currentCookie["currentuser"] & """">Edit</a> <a href="/~""" & currentCookie["currentuser"] & """">Profile</a>"""
-           )
-         else:
-           html.p(
-             html.a(href="/login", "Login"),
-             " ",
-             html.a(href="/reg", "Register")
-           )
-        )
-      )
-    )
-  )
+  let prop = newProperty()
+  prop["siteName"] = siteName
+  prop["x"] = x
+  if currentCookie.hasKey("currentUser"):
+    prop["currentUser"] = currentCookie["currentUser"]
+  return indexTemplate(prop)
 
 proc checkSession(x: StringTableRef, k: StringTableRef): bool =
   return (
@@ -95,6 +71,8 @@ proc logout(sessionStore: StringTableRef, req: Request) {.async.} =
 proc serveHTTP*(config: ZConfig) {.async.} =
   var server = newAsyncHttpServer()
   var sessionStore = newStringTable()
+
+  let proxyRoute = "/~{userid}".parseRoute
   proc cb(req: Request) {.async.} =
     asyncCheck log("HTTP Request: " & $req.reqMethod & " " & req.url.path & req.url.query)
     let currentCookie = req.headers.getOrDefault("cookie").parseCookies
@@ -107,17 +85,22 @@ proc serveHTTP*(config: ZConfig) {.async.} =
       await logout(sessionStore, req)
       return
     var response = ""
-    if req.url.path.startsWith("/~"):
-      let fingerReq = req.url.path.substr("/~".len)
+    
+    proxyRoute.dispatch(args, req):
+      let fingerReq = args["userid"]
       let r = await processRequest(fingerReq, config)
-      let prop = newStringTable()
+      let prop = newProperty()
       prop["siteName"] = config.getConfig(CONFIG_GROUP_HTTP, CONFIG_KEY_HTTP_SITE_NAME)
       prop["req"] = fingerReq
       prop["content"] = r
-      response = proxyTemplate(prop)
-    elif req.url.path == "/reg":
+      await req.respond(Http200, proxyTemplate(prop), {"Content-Type": "text/html; charset=utf-8"}.newHttpHeaders())
+      return
+
+    "/reg".dispatch(req):
       await handleReg(req, sessionStore, config)
-    elif req.url.path.startsWith("/edit-user/"):
+      return
+
+    if req.url.path.startsWith("/edit-user/"):
       let x = req.url.path.substr("/edit-user/".len)
       await handleEdit(req, sessionStore, config, x)
     elif req.url.path == "/login":

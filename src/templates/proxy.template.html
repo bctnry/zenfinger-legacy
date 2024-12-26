@@ -2,16 +2,16 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <title>{{req}} :: {{siteName}}</title>
+    <title>{{prop["req"]}} :: {{prop["siteName"]}}</title>
     <style>
       pre { font-size: 1rem; }
     </style>
   </head>
   <body>
-    <h1>{{req}}</h1>
+    <h1>{{prop["req"]}}</h1>
     proxy
     <hr />
-    <pre>{{content}}</pre>
+    <pre>{{prop["content"]}}</pre>
     <hr />
     <p>Powered by Zenfinger</p>
   </body>
