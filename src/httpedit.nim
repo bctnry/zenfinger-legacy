@@ -4,90 +4,21 @@ import std/strtabs
 import config
 import urlencoded
 import dbutil
+import zftemplate
 from std/strutils import parseInt, startsWith
 from htmlgen as html import nil
 
 proc renderEditPage(config: ZConfig, content: StringTableRef = nil): string =
   let siteName = config.getConfig(CONFIG_GROUP_HTTP, CONFIG_KEY_HTTP_SITE_NAME)
-  return (
-    html.html(
-      html.head(
-        html.meta(charset="utf-8"),
-        html.title("edit user content :: ", siteName)
-      ),
-      html.body(
-        html.h1("Edit User Content"),
-        html.hr(),
-        """<form action="" method="POST">""",
-        html.h2("File ", html.code("profile")),
-        html.p("NOTE: This file has a higher precedence than any other files listed below. If you enable <code>profile</code>, this would be the only thing people see when querying for your page on this server."),
-        """<label for="enable-main">Enable <code>profile</code>""",
-        """<input type="checkbox" name="enable-profile" id="enable-profile" """, if content.hasKey("profile"): "checked" else: "", """/><br />""",
-        """<textarea name="profile" id="profile" row="25" col="80">""", content.getOrDefault("profile"),
-        """</textarea>""",
-        
-        html.hr(),
-        
-        html.h2("File ", html.code("main")),
-        html.p("A place for you to put your self-introduction."),
-        """<label for="enable-main">Enable <code>main</code>""",
-        """<input type="checkbox" name="enable-main" id="enable-main"""", if content.hasKey("main"): "checked" else: "", """ /><br />""",
-        """<textarea name="main" id="main" row="25" col="80">""", content.getOrDefault("main"),
-        """</textarea>""",
-        
-        html.hr(),
-
-        html.h2("File ", html.code("contact")),
-        html.p("Your contact info."),
-        """<label for="enable-contact">Enable <code>contact</code>""",
-        """<input type="checkbox" name="enable-contact" id="enable-contact"""", if content.hasKey("contact"): "checked" else: "", """ /><br />""",
-        """<textarea name="contact" id="contact" row="25" col="80">""", content.getOrDefault("contact"),
-        """</textarea>""",
-        
-        html.hr(),
-
-        html.h2("File ", html.code("project")),
-        html.p("What kind of project are you currently working on?"),
-        """<label for="enable-project">Enable <code>project</code>""",
-        """<input type="checkbox" name="enable-project" id="enable-project"""", if content.hasKey("project"): "checked" else: "", """ /><br />""",
-        """<textarea name="project" id="project" row="25" col="80">""", content.getOrDefault("project"),
-        """</textarea>""",
-        
-        html.hr(),
-
-        html.h2("File ", html.code("plan")),
-        html.p("What plan do you currently have?"),
-        """<label for="enable-plan">Enable <code>plan</code>""",
-        """<input type="checkbox" name="enable-plan" id="enable-plan"""", if content.hasKey("plan"): "checked" else: "", """ /><br />""",
-        """<textarea name="plan" id="plan" row="25" col="80">""", content.getOrDefault("plan"),
-        """</textarea>""",
-        
-        html.hr(),
-
-        html.h2("File ", html.code("pgp_pubkey")),
-        """<label for="enable-pubkey">Enable <code>pgp_pubkey</code>""",
-        """<input type="checkbox" name="enable-pubkey" id="enable-pubkey"""", if content.hasKey("pgp_pubkey"): "checked" else: "", """ /><br />""",
-        """<textarea name="pubkey" id="pubkey" row="25" col="80">""", content.getOrDefault("pgp_pubkey"),
-        """</textarea>""",
-        
-        html.hr(),
-
-        html.h2("File ", html.code("pgp_pubkey.sig")),
-        """<label for="enable-pubkey-sig">Enable <code>pgp_pubkey.sig</code>""",
-        """<input type="checkbox" name="enable-pubkey-sig" id="enable-pubkey-sig"""", if content.hasKey("pgp_pubkey.sig"): "checked" else: "", """ /><br />""",
-        """<textarea name="pubkey-sig" id="pubkey-sig" row="25" col="80">""", content.getOrDefault("pgp_pubkey.sig"),
-        """</textarea>""",
-
-        html.hr(),
-
-        """<input type="submit" value="Save" />""",
-        """</form>""",
-        """ <a href="/">Back</a>""",
-        html.hr(),
-        html.p("Powered by Zenfinger")
-      )
-    )
-  )
+  let profileEnabled = if content.hasKey("profile"): "checked" else: ""
+  let mainEnabled = if content.hasKey("main"): "checked" else: ""
+  let contactEnabled = if content.hasKey("contact"): "checked" else: ""
+  let projectEnabled = if content.hasKey("project"): "checked" else: ""
+  let planEnabled = if content.hasKey("plan"): "checked" else: ""
+  let pubkeyEnabled = if content.hasKey("pgp_pubkey"): "checked" else: ""
+  let pubkeySigEnabled = if content.hasKey("pgp_pubkey.sig"): "checked" else: ""
+  expandTemplate(res, "templates/edit.template.html")
+  return res
 
 proc handleEdit*(req: Request, session: StringTableRef, config: ZConfig, username: string) {.async.} =
   let currentCookie = req.headers.getOrDefault("cookie").parseCookies

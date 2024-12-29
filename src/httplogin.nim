@@ -11,12 +11,10 @@ import zftemplate
 from std/strutils import parseInt, startsWith
 from htmlgen as html import nil
 
-defineTemplate(loginPageTemplate, "templates/login.template.html")
 proc renderLoginPage(config: ZConfig, message: string = ""): string =
-  var prop = newProperty()
-  prop["siteName"] = config.getConfig(CONFIG_GROUP_HTTP, CONFIG_KEY_HTTP_SITE_NAME)
-  prop["message"] = message
-  return loginPageTemplate(prop)
+  let siteName = config.getConfig(CONFIG_GROUP_HTTP, CONFIG_KEY_HTTP_SITE_NAME)
+  expandTemplate(results, "templates/login.template.html")
+  return results
 
 proc handleLogin*(req: Request, session: StringTableRef, config: ZConfig) {.async.} =
   let currentCookie = req.headers.getOrDefault("cookie").parseCookies

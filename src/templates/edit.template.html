@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>edit user content :: {{siteName}}</title>
+  </head>
+  <body>
+    <h1>Edit User Content</h1>
+    <hr />
+    <form action="" method="POST">
+      <h2>File <code>profile</code></h2>
+      <p>NOTE: This file has a higher precedence than any other files listed below. If you enable <code>profile</code>, this would be the only thing people see when querying for your page on this server.</p>
+      <label for="enable-main">Enable <code>profile</code></label>
+      <input type="checkbox" name="enable-profile" id="enable-profile" {{profileEnabled}} /><br />
+      <textarea name="profile" id="profile" row="25" col="80">{{content.getOrDefault("profile")}}</textarea>
+
+      <hr />
+
+      <h2>File <code>main</code></h2>
+      <p>A place for you to put your self-introduction.</p>
+      <label for="enable-main">Enable <code>main</code></label>
+      <input type="checkbox" name="enable-main" id="enable-main" {{mainEnabled}} /><br />
+      <textarea name="main" id="main" row="25" col="80">{{content.getOrDefault("main")}}</textarea>
+
+      <hr />
+
+      <h2>File <code>contact</code></h2>
+      <p>Your contact info.</p>
+      <label for="enable-contact">Enable <code>contact</code></label>
+      <input type="checkbox" name="enable-contact" id="enable-contact" {{contactEnabled}} /><br />
+      <textarea name="contact" id="contact" row="25" col="80">{{content.getOrDefault("contact")}}</textarea>
+
+      <hr />
+
+      <h2>File <code>project</code></h2>
+      <p>What kind of project are you currently working on?</p>
+      <label for="enable-project">Enable <code>project</code></label>
+      <input type="checkbox" name="enable-project" id="enable-project" {{projectEnabled}} /><br />
+      <textarea name="project" id="project" row="25" col="80">{{content.getOrDefault("project")}}</textarea>
+      
+      <hr />
+
+      <h2>File <code>plan</code></h2>
+      <p>What plan do you currently have?</p>
+      <label for="enable-plan">Enable <code>plan</code></label>
+      <input type="checkbox" name="enable-plan" id="enable-plan" {{planEnabled}} /><br />
+      <textarea name="plan" id="plan" row="25" col="80">{{content.getOrDefault("plan")}}</textarea>
+
+      <hr />
+
+      <h2>File <code>pgp_pubkey</code></h2>
+      <label for="enable-pubkey">Enable <code>pgp_pubkey</code></label>
+      <input type="checkbox" name="enable-pubkey" id="enable-pubkey" {{pubkeyEnabled}} /><br />
+      <textarea name="pubkey" id="pubkey" row="25" col="80">{{content.getOrDefault("pgp_pubkey")}}</textarea>
+      
+      <hr />
+      
+      <h2>File <code>pgp_pubkey.sig</code></h2>
+      <label for="enable-pubkey-sig">Enable <code>pgp_pubkey.sig</code></label>
+      <input type="checkbox" name="enable-pubkey-sig" id="enable-pubkey-sig" {{pubkeySigEnabled}} /><br />
+      <textarea name="pubkey-sig" id="pubkey-sig" row="25" col="80">{{content.getOrDefault("pgp_pubkey.sig")}}</textarea>
+
+      <hr />
+      
+
+      <input type="submit" value="Save" />
+    </form>
+    <a href="/">Back</a>
+    <hr />
+    <p>Powered by Zenfinger</p>
+</form>
+</body>
+</html>
+
